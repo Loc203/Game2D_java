@@ -1,5 +1,7 @@
 package main;
 
+import entity.Player;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -7,7 +9,7 @@ public class GamePanel extends JPanel implements Runnable {
     final int originalTileSize = 16; // pixel size object (default)
     final int scale = 3;
 
-    final int tileSize = originalTileSize * scale;
+    public int tileSize = originalTileSize * scale;
     final int maxScreeenCol = 16;
     final int maxScreeenRow = 12; // ti le 3:4
     final int screenWidth = tileSize * maxScreeenCol; //768 pixels
@@ -15,9 +17,8 @@ public class GamePanel extends JPanel implements Runnable {
 
     int FPS = 60;
     KeyHandler keyHandler = new KeyHandler();
-
     Thread gameThread;
-
+    Player player = new Player(this, keyHandler);
     //set default position
     int playerX = 100;
     int playerY = 100;
@@ -42,7 +43,7 @@ public class GamePanel extends JPanel implements Runnable {
     @Override
     public void run() {
         // 1s = 1bil nanos
-        double drawInterval = (double) 1000000000 /FPS;
+        double drawInterval = (double) 1000000000 / FPS;
         double nextDrawTime = System.nanoTime() + drawInterval;
         while (gameThread != null) {
             // update: cap nhat thong tin, vi tri cua nhan vat
@@ -52,9 +53,9 @@ public class GamePanel extends JPanel implements Runnable {
             //thread loop lien tuc hon 1trieu lan tren s, dung sleep de gioi han lan lap FPS
             try {
                 double remainingTime = nextDrawTime - System.nanoTime();
-                remainingTime = remainingTime/1000000;
+                remainingTime = remainingTime / 1000000;
 
-                if (remainingTime <= 0){
+                if (remainingTime <= 0) {
                     remainingTime = 0;
                 }
 
@@ -68,23 +69,13 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update() {
-        if (keyHandler.upPressed) {
-            playerY -= playerSpeed;
-        } else if (keyHandler.downPressed) {
-            playerY += playerSpeed;
-        } else if (keyHandler.rightPressed) {
-            playerX += playerSpeed;
-        } else if (keyHandler.leftPressed) {
-            playerX -= playerSpeed;
-        }
+        player.update();
     }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(Color.white);
-        g2.fillRect(playerX, playerY, tileSize, tileSize);
-
+        Graphics2D g2 = (Graphics2D)g;
+        player.draw(g2);
         g2.dispose();
     }
 }
