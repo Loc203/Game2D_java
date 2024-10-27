@@ -1,5 +1,6 @@
 package entity;
 
+import main.CollisionChecker;
 import main.GamePanel;
 import main.KeyHandler;
 
@@ -14,17 +15,24 @@ public class Player extends Entity {
     GamePanel gp;
     KeyHandler keyHandler;
 
+    public final int screenX;
+    public final int screenY;
+
     public Player(GamePanel gp, KeyHandler keyHandler) {
         this.gp = gp;
         this.keyHandler = keyHandler;
+        screenX = gp.screenWidth / 2 - (gp.tileSize / 2);
+        screenY = gp.screenHeight / 2 - (gp.tileSize / 2);
+
+        solidArea = new Rectangle(8, 16, 32, 32);
 
         setDefaultValues();
         getPlayerImage();
     }
 
     public void setDefaultValues() {
-        x = 100;
-        y = 100;
+        worldX = gp.tileSize * 23;
+        worldY = gp.tileSize * 21;
         speed = 4;
         direction = "up";
     }
@@ -45,30 +53,49 @@ public class Player extends Entity {
     }
 
     public void update() {
-        if (keyHandler.upPressed) {
-            direction = "up";
-            y -= speed;
-        } else if (keyHandler.downPressed) {
-            direction = "down";
-            y += speed;
-        } else if (keyHandler.rightPressed) {
-            direction = "right";
-            x += speed;
-        } else if (keyHandler.leftPressed) {
-            direction = "left";
-            x -= speed;
-        }
+        if (keyHandler.upPressed || keyHandler.downPressed || keyHandler.leftPressed || keyHandler.rightPressed) {
+            if (keyHandler.upPressed) {
+                direction = "up";
+            } else if (keyHandler.downPressed) {
+                direction = "down";
+            } else if (keyHandler.rightPressed) {
+                direction = "right";
+            } else if (keyHandler.leftPressed) {
+                direction = "left";
+            }
 
-        spritesCounter++;
-        if (spritesCounter > 10){
-            if (spritesNum == 1){
-                spritesNum = 2;
+            // check tile collision
+            collisionOn = false;
+            gp.collisionChecker.checkTile(this);
+
+            //if false => cant move
+            if (!collisionOn) {
+                switch (direction) {
+                    case "up":
+                        worldY -= speed;
+                        break;
+                    case "down":
+                        worldY += speed;
+                        break;
+                    case "left":
+                        worldX -= speed;
+                        break;
+                    case "right":
+                        worldX += speed;
+                        break;
+                }
             }
-            else if (spritesNum == 2){
-                spritesNum = 1;
-            }
-            spritesCounter = 0;
         }
+            spritesCounter++;
+            if (spritesCounter > 10) {
+                if (spritesNum == 1) {
+                    spritesNum = 2;
+                } else if (spritesNum == 2) {
+                    spritesNum = 1;
+                }
+                spritesCounter = 0;
+            }
+
     }
 
     public void draw(Graphics2D g2) {
@@ -108,7 +135,7 @@ public class Player extends Entity {
                 }
                 break;
         }
-        g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
+        g2.drawImage(image, screenX, screenY, gp.tileSize, gp.tileSize, null);
 
     }
 }
